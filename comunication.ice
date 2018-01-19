@@ -3,6 +3,11 @@
 
 module comunication {
 
+struct warning{
+  int nRobots;
+  drobots::Point location;
+};
+
 struct objetivo{
   int direccion;
   int distancia;
@@ -21,7 +26,7 @@ struct objetivo{
     void ola(int entero1, int entero2);
   };
 
-  interface Alerta {
+  interface WarningController {
     void sendWarning();
   };
 
