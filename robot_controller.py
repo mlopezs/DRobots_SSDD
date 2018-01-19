@@ -15,6 +15,7 @@ import random
 class OffensiveController(comunication.OffensiveController, comunication.Estado):
     
     def __init__(self, bot, id, containerNumber, current=None):
+    	
         self.bot = bot
         self.robot_id = id
         self.containerNumber = containerNumber
@@ -24,10 +25,6 @@ class OffensiveController(comunication.OffensiveController, comunication.Estado)
         print("--- ROBOT ATACKER---")
 
     def turn(self, current):
-        """
-        Method that will be invoked remotely by the server. In this method we
-        should communicate with out Robot
-        """
 
         location = self.bot.location()
         estadoActual = Estado(self.robot_id, location)
