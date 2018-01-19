@@ -32,3 +32,7 @@ class DetectorControllerI(drobots.DetectorController, comunication.Alerta):
 				print("Enviando estado a todos mi compañeros")
 				robot = comunication.OffensiveControllerPrx.checkedCast(proxy_list[i])
 				robot.ola(100,90)
+
+class Alert():
+	def __init__(self, current=None):
+		pass
