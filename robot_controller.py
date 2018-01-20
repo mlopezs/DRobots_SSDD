@@ -109,7 +109,7 @@ class SeeingController(comunication.SeeingController, comunication.Estado):
                 self.direccion = random.randint(0, 359)
                 self.bot.drive(self.direccion, 100)
                 self.driving = True
-            elif self.contadorMovimiento != 5 and self.driving == True:
+            elif self.contadorMovimiento != 20 and self.driving == True:
                 self.contadorMovimiento += 1
                 wide = random.randint(5,20)
 
