@@ -18,7 +18,7 @@ class Client(Ice.Application):
         containerNumber = broker.getProperties().getProperty("ContainerNumber")
         minas = broker.getProperties().getProperty("PlayerMines")        
         adapter = broker.createObjectAdapter("PlayerAdapter")
-        servant = PlayerI(minas, containerNumber)
+        servant = PlayerI(minas, containerNumber, name)
 
         id = broker.stringToIdentity(name)
         adapter.add(servant, id)

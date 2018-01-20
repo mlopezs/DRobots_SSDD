@@ -8,7 +8,7 @@ import drobots
 Ice.loadSlice('--all comunication.ice')
 import comunication
 
-class Warning(comunication.warning):
+class DetectorWarningI(comunication.DetectorWarning):
 
 	def __init__(self, nRobots, location, current=None):
 

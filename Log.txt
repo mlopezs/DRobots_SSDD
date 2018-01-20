@@ -1,0 +1,73 @@
+make[1]: se entra en el directorio '/home/alf/Escritorio/tercer intento/version mas o menos funcional 30-12-2017'
+mkdir -p /tmp/db/registry
+mkdir -p /tmp/db/node5
+mkdir -p /tmp/db/node4
+mkdir -p /tmp/db/node3
+mkdir -p /tmp/db/node2
+mkdir -p /tmp/db/node1
+icegridnode --Ice.Config=node1.config &
+-- waiting registry to start...
+-- node5 started
+-- node4 started
+-- node3 started
+-- node2 started
+icegridadmin --Ice.Config=locator.config -u alf -p 123 -e "application add "./drobots.xml""
+-- ok
+make[1]: se sale del directorio '/home/alf/Escritorio/tercer intento/version mas o menos funcional 30-12-2017'
+[
+{
+    x = 150
+    y = 150
+}, 
+{
+    x = 150
+    y = 350
+}, 
+{
+    x = 350
+    y = 150
+}, 
+{
+    x = 350
+    y = 350
+}]
+Game was aborted, like this program
+---------------------- CREANDO CONTAINER ----------------------
+---------------------- CREANDO CONTAINER ----------------------
+ServerFactory Factory3 -t -e 1.1 @ Factory3.Factory_Adapter
+ServerFactory Factory2 -t -e 1.1 @ Factory2.Factory_Adapter
+ServerFactory Factory1 -t -e 1.1 @ Factory1.Factory_Adapter
+[
+{
+    x = 150
+    y = 150
+}, 
+{
+    x = 150
+    y = 350
+}, 
+{
+    x = 350
+    y = 150
+}, 
+{
+    x = 350
+    y = 350
+}]
+[
+{
+    x = 150
+    y = 150
+}, 
+{
+    x = 150
+    y = 350
+}, 
+{
+    x = 350
+    y = 150
+}, 
+{
+    x = 350
+    y = 350
+}]

@@ -3,14 +3,21 @@
 
 module comunication {
 
-struct warning{
+struct DetectorWarning{
   int nRobots;
   drobots::Point location;
 };
 
-struct objetivo{
+struct Objective{
   int direccion;
   int distancia;
+  int prioridad;
+};
+
+struct DetectionScanner{
+  int direccion;
+  int aperturaEscaner;
+  int numeroEncontrado;
 };
 
   interface Estado {
@@ -22,12 +29,15 @@ struct objetivo{
   };
 
   interface OffensiveController extends drobots::RobotController, Estado {
-    void destroyAnything(objetivo objective);
-    void ola(int entero1, int entero2);
+    void destroyAnything(Objective objective);
+    void markTarget(int direccion, drobots::Point location);
+    void receiveObjectives(int listaObjetivos);
+    void receiveAlert(DetectorWarning detectorWarningMonger);
+    void agregarEstado(int id, drobots::Point location);
   };
 
   interface WarningController {
-    void sendWarning();
+    void sendWarning(int detectedRobots, drobots::Point location);
   };
 
 };

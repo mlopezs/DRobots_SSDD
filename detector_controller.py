@@ -10,6 +10,8 @@ import services
 Ice.loadSlice('--all comunication.ice')
 import comunication
 
+from detector_warning import *
+
 class DetectorControllerI(drobots.DetectorController, comunication.WarningController, ):
 	
 	def __init__(self, containerNumber, current=None):
@@ -25,11 +27,11 @@ class DetectorControllerI(drobots.DetectorController, comunication.WarningContro
 		container_prx = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
 		container = services.ContainerPrx.checkedCast(container_prx)
 		proxy_list = list(container.list().values())
-		warning = Warning(detectedRobots, location)
+		detectorWarning = DetectorWarningI(detectedRobots, location)
                 	
 		for i in  range(len(proxy_list)):
 			proxyAux = proxy_list[i]
 			if(proxyAux.ice_isA("::comunication::OffensiveController")):
 				print("Enviando estado a todos mis compañeros")
 				robot = comunication.OffensiveControllerPrx.checkedCast(proxy_list[i])
-				robot.ola(100,90)
+				robot.receiveAlert(detectorWarning)

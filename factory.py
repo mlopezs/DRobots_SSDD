@@ -11,13 +11,13 @@ import services
 import comunication
 
 from robot_controller import *
-from detector_controller import DetectorControllerI
+from detector_controller import *
 
 class FactoryI(services.Factory):
-    def make(self, robot, nRobots, containerNumber, current=None):
+    def make(self, robot, nRobots, containerNumber, current):
 
 
-        servant_ctrl = self.create_servant(robot, nRobots, containerNumber)
+        servant_ctrl = self.create_servant(robot, nRobots, containerNumber, current)
         
         controller_prx = current.adapter.addWithUUID(servant_ctrl)
         prx_id = controller_prx.ice_getIdentity()
@@ -27,13 +27,13 @@ class FactoryI(services.Factory):
         print("Robotillo creado con exito")
         return robotCtrl_prx
 
-    def create_servant(self, robot, nRobots, containerNumber):
+    def create_servant(self, robot, nRobots, containerNumber, current):
         if (robot.ice_isA("::drobots::Attacker")):
             print("___________________CREANDO ROBOT ATTACKER___________________")
-            return OffensiveController(robot, nRobots, containerNumber)
+            return OffensiveController(robot, nRobots, containerNumber, current)
         elif (robot.ice_isA("::drobots::Defender")):
             print("____________________CREANDO ROBOT DEFENDER__________________")
-            return SeeingController(robot, nRobots, containerNumber)
+            return SeeingController(robot, nRobots, containerNumber, current)
 
     def makeDetector(self, containerNumber,current = None):
         print("Creando detector controller")

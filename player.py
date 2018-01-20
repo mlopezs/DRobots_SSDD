@@ -9,12 +9,13 @@ import drobots
 import services
 
 class PlayerI(drobots.Player):
-    def __init__(self, minitas,containerNumber ,current=None):
+    def __init__(self, minitas, containerNumber, name, current=None):
         self.factories = 1
         self.bots = 1
         self.detectors = 0
         self.mine_index = 0
         self.containerNumber = containerNumber
+        self.name = name
 
         if minitas == 0:
             self.mines = [
@@ -50,7 +51,7 @@ class PlayerI(drobots.Player):
         container_prx.link("Robot" + str(self.bots), robot_prx)
         self.bots += 1
 
-        if (self.factories == 2):
+        if (self.factories == 3):
             self.factories = 0
 
         self.factories += 1
@@ -85,11 +86,11 @@ class PlayerI(drobots.Player):
         return pos
 
     def win(self, current=None):
-        print("You win very madafaker well >:D")
+        print("You win very well >:D, {}".format(self.name))
         current.adapter.getCommunicator().shutdown()
 
     def lose(self, current=None):
-        print("You lose madafaker D:<")
+        print("You lose, D:<, {}".format(self.name))
         current.adapter.getCommunicator().shutdown()
 
     def gameAbort(self, current=None):
