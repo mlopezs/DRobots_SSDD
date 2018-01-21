@@ -3,46 +3,56 @@
 
 import sys
 import Ice
-Ice.loadSlice('drobots.ice')
+Ice.loadSlice('--all drobots.ice')
 import drobots
 import math
 import random
 from player import PlayerI
 
 class Client(Ice.Application):
-    def run(self, argv):
 
-        broker = self.communicator()
-        name = broker.getProperties().getProperty("PlayerName")
-        name = name+str(random.randint(1,10))
-        containerNumber = broker.getProperties().getProperty("ContainerNumber")
-        minas = broker.getProperties().getProperty("PlayerMines")        
-        adapter = broker.createObjectAdapter("PlayerAdapter")
-        servant = PlayerI(minas, containerNumber, name)
+	def run(self, argv):
 
-        id = broker.stringToIdentity(name)
-        adapter.add(servant, id)
+		broker = self.communicator()
 
-        direct_prx = adapter.createDirectProxy(id)
-        adapter.activate()
-        player_prx = drobots.PlayerPrx.checkedCast(direct_prx)
+		# Creamos el player con la información del fichero .properties
+		properties = broker.getProperties()
+		mines = properties.getProperty("PlayerMines")
+		containerNumber = properties.getProperty("ContainerNumber")
+		name = properties.getProperty("PlayerName") + str(random.randint(1,9))
+		servant = PlayerI(mines, containerNumber, name)
 
-        client_prx = broker.propertyToProxy("Game_proxy")
-        game_prx = drobots.GamePrx.checkedCast(client_prx)
+		# Paso básico para el uso de objetos distribuidos
 
-        try:
-            game_prx.login(player_prx, name)
+		adapter = broker.createObjectAdapter("PlayerAdapter")
+		id = broker.stringToIdentity(name)
 
-            self.shutdownOnInterrupt()
-            self.communicator().waitForShutdown()
+		adapter.add(servant, id)	
 
-        except Exception as ex:
-            print("An error has occurred: {}".format(ex))
-            return 1
+		direct_prx = adapter.createDirectProxy(id)
 
-        return 0
+		adapter.activate()
 
-        self.shutdownOnInterrupt()
-        broker.waitForShutdown()
+		player_prx = drobots.PlayerPrx.checkedCast(direct_prx)
+
+		client_prx = broker.propertyToProxy("Game_proxy")
+
+		game_prx = drobots.GamePrx.checkedCast(client_prx)
+
+		print("Connecting to game {} with nickname {}".format(game_prx, name))
+
+		try:
+
+			game_prx.login(player_prx, name)
+
+			self.shutdownOnInterrupt()
+			broker.waitForShutdown()
+
+		except Exception as ex:
+
+			print("An error has occurred: {}".format(ex))
+			return 1
+
+		return 0
 
 sys.exit(Client().main(sys.argv))

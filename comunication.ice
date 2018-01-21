@@ -1,4 +1,5 @@
 // -*- mode:c++ -*-
+
 #include "drobots.ice"
 
 module comunication {

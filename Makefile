@@ -6,9 +6,9 @@ NODE_DIRS=$(addprefix /tmp/db/, $(NODES))
 IG_ADMIN=icegridadmin --Ice.Config=locator.config -u alf -p 123
 
 analisis: 
-	make start-grid > Log.txt
+	make begin-grid > Log.txt
 
-start-grid: /tmp/db/registry $(NODE_DIRS)
+begin-grid: /tmp/db/registry $(NODE_DIRS)
 	icegridnode --Ice.Config=node1.config &
 
 	@echo -- waiting registry to start...
@@ -43,10 +43,5 @@ clean: stop-grid
 	-$(RM) -r /tmp/db
 
 lejia: clean
-	sudo service icegridregistry stop
-	sudo service icegridnode stop
-	sudo pkill -9 -f icegrid
-
-	
 	rm Log.txt
 	clear

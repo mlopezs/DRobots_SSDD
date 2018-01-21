@@ -23,6 +23,15 @@
             </properties>
             <adapter name="PlayerAdapter" endpoints="tcp" id="${server}.PlayerAdapter"/>
          </server>
+         <server id="Factory0" activation="always" exe="./factory.py">
+            <properties>
+            </properties>
+            <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
+               <object identity="Factory0" type="::services::Factory" property="Identity"/>
+            </adapter>
+         </server>
+      </node>
+      <node name="node2">
          <server id="Factory1" activation="always" exe="./factory.py">
             <properties>
             </properties>
@@ -31,21 +40,12 @@
             </adapter>
          </server>
       </node>
-      <node name="node2">
+      <node name="node3">
          <server id="Factory2" activation="always" exe="./factory.py">
             <properties>
             </properties>
             <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
                <object identity="Factory2" type="::services::Factory" property="Identity"/>
-            </adapter>
-         </server>
-      </node>
-      <node name="node3">
-         <server id="Factory3" activation="always" exe="./factory.py">
-            <properties>
-            </properties>
-            <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
-               <object identity="Factory3" type="::services::Factory" property="Identity"/>
             </adapter>
          </server>
       </node>
