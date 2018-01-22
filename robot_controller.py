@@ -29,7 +29,7 @@ class AttackerController(communication.AttackerController, communication.State):
 		self.resetTargets = 0
 		self.friends = []
 		self.movementCounter = 0
-		self.direction = 0
+		self.direction = random.randint(0, 359)
 		self.pos = 0
 
 		print("- - - - - ROBOT {} -> ATTACKER -> FROM CONTAINER {} - - - - -".format(iden, containerNumber))
@@ -56,12 +56,20 @@ class AttackerController(communication.AttackerController, communication.State):
 
 			else:
 
-				if self.movementCounter >= 35 or crashAlert == True:
+				if crashAlert == True:
 
 					self.direction = (self.direction + 180) % 360
 					self.bot.drive(self.direction, 100)
-					self.movementCounter = 0
 					print("[Attacker{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
+
+				else:
+
+					if self.movementCounter >= 35:
+
+						self.direction = random.randint(0, 359)
+						self.bot.drive(self.direction, 100)
+						self.movementCounter = 0
+						print("[Attacker{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
 
 				self.movementCounter += 1
 
@@ -187,7 +195,7 @@ class WatcherController(communication.WatcherController, communication.State):
 		self.scannedRobots = []
 		self.targets = []
 		self.movementCounter = 0
-		self.direction = 0
+		self.direction = random.randint(0, 359)
 
 		print("- - - - - ROBOT {} -> WATCHER -> FROM CONTAINER {} - - - - -".format(iden, containerNumber))
 
@@ -216,9 +224,15 @@ class WatcherController(communication.WatcherController, communication.State):
 
 			else:
 
-				if self.movementCounter >= 35 or crashAlert:
+				if crashAlert == True:
 
 					self.direction = (self.direction + 180) % 360
+					self.bot.drive(self.direction, 100)
+					print("[Watcher{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
+
+				elif self.movementCounter >= 35:
+
+					self.direction = random.randint(0, 359)
 					self.bot.drive(self.direction, 100)
 					self.movementCounter = 0
 					print("[Watcher{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
