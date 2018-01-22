@@ -5,7 +5,10 @@ NODES=$(basename $(shell ls node*.config | sort -r))
 NODE_DIRS=$(addprefix /tmp/db/, $(NODES))
 IG_ADMIN=icegridadmin --Ice.Config=locator.config -u alf -p 123
 
-start-grid: /tmp/db/registry $(NODE_DIRS)
+analisis: 
+	make begin-grid > Log.txt
+
+begin-grid: /tmp/db/registry $(NODE_DIRS)
 	icegridnode --Ice.Config=node1.config &
 
 	@echo -- waiting registry to start...
@@ -18,7 +21,7 @@ start-grid: /tmp/db/registry $(NODE_DIRS)
 	    echo -- $$node started; \
 	done
 
-	$(IG_ADMIN) -e "application add "./drobots.xml"" | cat >> ./logParaAnalizar.txt
+	$(IG_ADMIN) -e "application add "./drobots.xml""
 	@echo -- ok
 
 stop-grid:
@@ -38,3 +41,7 @@ show-nodes:
 clean: stop-grid
 	-$(RM) *~
 	-$(RM) -r /tmp/db
+
+lejia: clean
+	rm Log.txt
+	clear

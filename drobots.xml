@@ -5,7 +5,7 @@
       <node name="node1">
          <server id="Client" activation="always" exe="./client.py">
             <properties>
-               <property name="Game_proxy" value="drobots9"/>
+               <property name="Game_proxy" value="drobots12"/>
                <property name="Game_proxy.Locator" value="IceGrid/Locator -t:tcp -h atclab.esi.uclm.es -p 4061"/>
                <property name="PlayerName" value="patxi"/>
                <property name="PlayerMines" value="0"/>
@@ -15,14 +15,23 @@
          </server>
          <server id="Client2" activation="always" exe="./client.py">
             <properties>
-               <property name="Game_proxy" value="drobots9"/>
+               <property name="Game_proxy" value="drobots12"/>
                <property name="Game_proxy.Locator" value="IceGrid/Locator -t:tcp -h atclab.esi.uclm.es -p 4061"/>
-               <property name="PlayerName" value="nick"/>
+               <property name="PlayerName" value="nicky"/>
                <property name="PlayerMines" value="1"/>
                <property name="ContainerNumber" value="2"/>
             </properties>
             <adapter name="PlayerAdapter" endpoints="tcp" id="${server}.PlayerAdapter"/>
          </server>
+         <server id="Factory0" activation="always" exe="./factory.py">
+            <properties>
+            </properties>
+            <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
+               <object identity="Factory0" type="::services::Factory" property="Identity"/>
+            </adapter>
+         </server>
+      </node>
+      <node name="node2">
          <server id="Factory1" activation="always" exe="./factory.py">
             <properties>
             </properties>
@@ -31,21 +40,12 @@
             </adapter>
          </server>
       </node>
-      <node name="node2">
+      <node name="node3">
          <server id="Factory2" activation="always" exe="./factory.py">
             <properties>
             </properties>
             <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
                <object identity="Factory2" type="::services::Factory" property="Identity"/>
-            </adapter>
-         </server>
-      </node>
-      <node name="node3">
-         <server id="Factory3" activation="always" exe="./factory.py">
-            <properties>
-            </properties>
-            <adapter name="Factory_Adapter" endpoints="tcp" id="${server}.Factory_Adapter">
-               <object identity="Factory3" type="::services::Factory" property="Identity"/>
             </adapter>
          </server>
       </node>
