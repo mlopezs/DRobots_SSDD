@@ -7,7 +7,6 @@ Ice.loadSlice('--all drobots.ice')
 import drobots
 Ice.loadSlice('--all services.ice')
 import services
-import time
 
 class PlayerI(drobots.Player):
 
@@ -103,32 +102,17 @@ class PlayerI(drobots.Player):
 
     	        return mine_position
 
-        def win(self, current):
-                
-                print("You win! Congratulations, {}\n(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧\n".format(self.name))
-                self.vaciarContainer(current)
-                current.adapter.getCommunicator().shutdown()
-                
-        def lose(self, current):
-                
-                print("Oh no! You lose, {}\n(╯°□°）╯︵ ┻━┻\n".format(self.name))
-                self.vaciarContainer(current)
-                current.adapter.getCommunicator().shutdown()
-                
+        def win(self, current=None):
+
+    	        print("You win! Congratulations, {}\n(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧\n".format(self.name))
+    	        current.adapter.getCommunicator().shutdown()
+
+        def lose(self, current=None):
+
+    	        print("Oh no! You lose, {}\n(╯°□°）╯︵ ┻━┻\n".format(self.name))
+    	        current.adapter.getCommunicator().shutdown()
+
         def gameAbort(self, current=None):
 
-                print("[{}-kun]\nFuck! Game has crashed\n.·´¯`(>▂<)´¯`·.\n".format(self.name))
-                current.adapter.getCommunicator().shutdown()
-                
-        def vaciarContainer(self, current):
-
-                # Esto se hace para vaciar los containers después de cada partida
-                cproxy = current.adapter.getCommunicator().stringToProxy("Container" + self.containerNumber)
-                container_prx = services.ContainerPrx.checkedCast(cproxy)
-
-                listaProxies = list(container_prx.list().keys())
-
-                for i in listaProxies:
-                        container_prx.unlink(i)
-
-                print("Container vacío preparado para un nuevo jugador :D")
+    	        print("Fuck! Game has crashed\n.·´¯`(>▂<)´¯`·.\n")
+    	        current.adapter.getCommunicator().shutdown()

@@ -3,12 +3,10 @@
 
 import sys
 import Ice
-Ice.loadSlice('--all drobots.ice')
-import drobots
-Ice.loadSlice('--all comunication.ice')
-import comunication
+Ice.loadSlice('--all communication.ice')
+import communication
 
-class DetectorWarningI(comunication.DetectorWarning):
+class DetectorWarningI(communication.DetectorWarning):
 
 	def __init__(self, nRobots, location, current=None):
 

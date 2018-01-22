@@ -3,13 +3,13 @@
 
 import sys
 import Ice
-Ice.loadSlice('--all drobots.ice')
-Ice.loadSlice('--all comunication.ice')
-import drobots
-import comunication
+Ice.loadSlice('--all communication.ice')
+import communication
 
-class DetectionScannerI(comunication.DetectionScanner):
+class DetectionScannerI(communication.DetectionScanner):
+
     def __init__(self, direccion, aperturaEscaner, numeroEncontrado):
+        
         self.direccion = direccion
         self.aperturaEscaner = aperturaEscaner
         self.numeroEncontrado = numeroEncontrado

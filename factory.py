@@ -4,65 +4,81 @@
 import sys
 import Ice
 Ice.loadSlice('--all drobots.ice')
-Ice.loadSlice('--all services.ice')
-Ice.loadSlice('--all comunication.ice')
 import drobots
+Ice.loadSlice('--all services.ice')
 import services
-import comunication
+Ice.loadSlice('--all communication.ice')
+import communication
 
 from robot_controller import *
 from detector_controller import *
 
 class FactoryI(services.Factory):
-    def make(self, robot, nRobots, containerNumber, current):
 
+	def make(self, robot, nRobots, containerNumber, current):
 
-        servant_ctrl = self.create_servant(robot, nRobots, containerNumber, current)
-        
-        controller_prx = current.adapter.addWithUUID(servant_ctrl)
-        prx_id = controller_prx.ice_getIdentity()
-        direct_prx = current.adapter.createDirectProxy(prx_id)
-        robotCtrl_prx = drobots.RobotControllerPrx.checkedCast(direct_prx)
-        
-        print("Robotillo creado con exito")
-        return robotCtrl_prx
+		print("Creando RobotController...")
 
-    def create_servant(self, robot, nRobots, containerNumber, current):
-        if (robot.ice_isA("::drobots::Attacker")):
-            print("___________________CREANDO ROBOT ATTACKER___________________")
-            return OffensiveController(robot, nRobots, containerNumber, current)
-        elif (robot.ice_isA("::drobots::Defender")):
-            print("____________________CREANDO ROBOT DEFENDER__________________")
-            return SeeingController(robot, nRobots, containerNumber, current)
+		robotController = self.createRobotController(robot, nRobots, containerNumber, current)
 
-    def makeDetector(self, containerNumber,current = None):
-        print("Creando detector controller")
-        servantDController = DetectorControllerI(containerNumber)
-        proxyDController = current.adapter.addWithUUID(servantDController)
-        direct_DControllerProxy = current.adapter.createDirectProxy(proxyDController.ice_getIdentity())
+		servant = current.adapter.addWithUUID(robotController)
+		identity = servant.ice_getIdentity()
+		direct_prx = current.adapter.createDirectProxy(identity)
+		robotController_prx = drobots.RobotControllerPrx.checkedCast(direct_prx)
 
-        detectorController = drobots.DetectorControllerPrx.checkedCast(direct_DControllerProxy)
-        print("Detector controller creado con exito")
-        return detectorController
+		print("RobotController creado con éxito")
+
+		return robotController_prx
+
+	def createRobotController(self, robot, nRobots, containerNumber, current):
+
+		if robot.ice_isA("::drobots::Attacker"):
+
+			print("__________CREANDO ROBOT ATTACKER__________")
+			return AttackerController(robot, nRobots, containerNumber, current)
+
+		elif robot.ice_isA("::drobots::Defender"):
+
+			print("__________CREANDO ROBOT DEFENDER__________")
+			return WatcherController(robot, nRobots, containerNumber, current)
+
+	def makeDetector(self, containerNumber, current=None):
+
+		print("Creando DetectorController...")
+
+		servant = DetectorControllerI(containerNumber)
+		proxy = current.adapter.addWithUUID(servant)
+		identity = proxy.ice_getIdentity()
+		direct_prx = current.adapter.createDirectProxy(identity)
+		detectorController_prx = drobots.DetectorControllerPrx.checkedCast(direct_prx)
+
+		print("DetectorController creado con éxito")
+
+		return detectorController_prx
+
 
 class ServerFactory(Ice.Application):
-    def run(self, argv):
-        broker = self.communicator()
-        adapter = broker.createObjectAdapter("Factory_Adapter")
 
-        properties = broker.getProperties().getProperty("Identity")
-        identidad = broker.stringToIdentity(properties)
+	def run(self, argv):
 
-        servant = FactoryI()
+		broker = self.communicator()
 
-        proxy_server = adapter.add(servant, identidad)
+		adapter = broker.createObjectAdapter("Factory_Adapter")
 
-        print("ServerFactory", str(proxy_server))
+		identity_prop = broker.getProperties().getProperty("Identity")
+		identity = broker.stringToIdentity(identity_prop)
 
-        adapter.activate()
-        self.shutdownOnInterrupt()
-        broker.waitForShutdown()
+		servant = FactoryI()
 
-        return 0
+		proxy = adapter.add(servant, identity)
+
+		print("Proxy ServerFactory -> {}".format(proxy))
+
+		adapter.activate()
+		
+		self.shutdownOnInterrupt()
+		broker.waitForShutdown()
+
+		return 0
 
 sys.exit(ServerFactory().main(sys.argv))

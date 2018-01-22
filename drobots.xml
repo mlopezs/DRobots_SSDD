@@ -5,7 +5,7 @@
       <node name="node1">
          <server id="Client" activation="always" exe="./client.py">
             <properties>
-               <property name="Game_proxy" value="drobots9"/>
+               <property name="Game_proxy" value="drobots12"/>
                <property name="Game_proxy.Locator" value="IceGrid/Locator -t:tcp -h atclab.esi.uclm.es -p 4061"/>
                <property name="PlayerName" value="patxi"/>
                <property name="PlayerMines" value="0"/>
@@ -15,9 +15,9 @@
          </server>
          <server id="Client2" activation="always" exe="./client.py">
             <properties>
-               <property name="Game_proxy" value="drobots9"/>
+               <property name="Game_proxy" value="drobots12"/>
                <property name="Game_proxy.Locator" value="IceGrid/Locator -t:tcp -h atclab.esi.uclm.es -p 4061"/>
-               <property name="PlayerName" value="nick"/>
+               <property name="PlayerName" value="nicky"/>
                <property name="PlayerMines" value="1"/>
                <property name="ContainerNumber" value="2"/>
             </properties>
