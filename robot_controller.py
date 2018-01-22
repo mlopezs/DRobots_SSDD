@@ -56,10 +56,11 @@ class AttackerController(communication.AttackerController, communication.State):
 
 			else:
 
-				if crashAlert == True:
+				if crashAlert == True and self.movementCounter < 15:
 
 					self.direction = (self.direction + 180) % 360
 					self.bot.drive(self.direction, 100)
+					self.movementCounter = 0
 					print("[Attacker{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
 
 				else:
@@ -224,10 +225,11 @@ class WatcherController(communication.WatcherController, communication.State):
 
 			else:
 
-				if crashAlert == True:
+				if crashAlert == True and self.movementCounter < 15:
 
 					self.direction = (self.direction + 180) % 360
 					self.bot.drive(self.direction, 100)
+					self.movementCounter = 0
 					print("[Watcher{}] Re-Driving to -> {}".format(self.robotIden, self.direction))
 
 				elif self.movementCounter >= 35:
