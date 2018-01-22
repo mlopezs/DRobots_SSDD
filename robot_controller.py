@@ -13,7 +13,6 @@ import math
 import random
 
 from detector_warning import *
-from detecciones_escaneo import *
 from objective import *
 
 class AttackerController(communication.AttackerController, communication.State):
@@ -253,7 +252,7 @@ class WatcherController(communication.WatcherController, communication.State):
 
 						if numFoundRobots > 0:
 
-							detectedObjective = Objective(angle, None, None, False) #DetectionScannerI(angle, wide, numFoundRobots)
+							detectedObjective = Objective(angle, None, None, False)
 							self.scannedRobots.append(detectedObjective)
 
 			self.targets = []
@@ -268,13 +267,13 @@ class WatcherController(communication.WatcherController, communication.State):
 
 		friendCounter = 0
 
+		self.friends.append(myPos)
+
 		for scn in self.scannedRobots:
 			for fri in self.friends:
 				
 				dx = fri.x - myPos.x
 				dy = fri.y - myPos.y
-
-				dis = math.hypot(dx, dy)
 
 				dirScanFri = math.atan2(dy, dx)
 
