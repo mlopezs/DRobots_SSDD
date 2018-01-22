@@ -21,7 +21,7 @@ class Objective(communication.Objective):
 
 			self.posObjetivo = drobots.Point(0,0)
 			self.distancia = 0
-			self.direccion = 0
+			self.direccion = dirScanner
 
 		else:
 
