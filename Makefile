@@ -5,10 +5,10 @@ NODES=$(basename $(shell ls node*.config | sort -r))
 NODE_DIRS=$(addprefix /tmp/db/, $(NODES))
 IG_ADMIN=icegridadmin --Ice.Config=locator.config -u alf -p 123
 
-analisis: 
-	make begin-grid > Log.txt
+log: 
+	make start-grid > log.txt
 
-begin-grid: /tmp/db/registry $(NODE_DIRS)
+start-grid: /tmp/db/registry $(NODE_DIRS)
 	icegridnode --Ice.Config=node1.config &
 
 	@echo -- waiting registry to start...
@@ -38,10 +38,7 @@ show-nodes:
 /tmp/db/%:
 	mkdir -p $@
 
-clean: stop-grid
+clean:	stop-grid
 	-$(RM) *~
 	-$(RM) -r /tmp/db
-
-lejia: clean
-	rm Log.txt
-	clear
+	rm log.txt
