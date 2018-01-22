@@ -265,6 +265,15 @@ class WatcherController(communication.WatcherController, communication.State):
 
 	def checkPositions(self, myPos):
 
+		""" TODO *********************************************************************************
+
+			Aquí se deberia añadir a la lista de targets definitiva aquellos que no son aliados
+			Hay que comparar, usando la amplitud del angulo y la direccion del scanner, 
+			ppara saber si hay puntos aliados (self.friends) dentro del escaneo, si lo hay,
+			no se añaden a los targets
+
+		**************************************************************************************** """
+
 		friendCounter = 0
 
 		self.friends.append(myPos)
