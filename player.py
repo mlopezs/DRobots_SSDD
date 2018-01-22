@@ -4,94 +4,115 @@
 import sys
 import Ice
 Ice.loadSlice('--all drobots.ice')
-Ice.loadSlice('--all services.ice')
 import drobots
+Ice.loadSlice('--all services.ice')
 import services
 
 class PlayerI(drobots.Player):
-    def __init__(self, minitas,containerNumber ,current=None):
-        self.factories = 1
-        self.bots = 1
-        self.detectors = 0
-        self.mine_index = 0
-        self.containerNumber = containerNumber
 
-        if minitas == 0:
-            self.mines = [
-                drobots.Point(x=100, y=100),
-                drobots.Point(x=100, y=300),
-                drobots.Point(x=300, y=100),
-                drobots.Point(x=300, y=300),
-            ]
-        else:
-            self.mines = [
-                drobots.Point(x=150, y=150),
-                drobots.Point(x=150, y=350),
-                drobots.Point(x=350, y=150),
-                drobots.Point(x=350, y=350),
-            ]
-        print(self.mines)
+        def __init__(self, mines, containerNumber, name, current=None):
 
-    def makeController(self, bot, current=None):
-        containerNumber = self.containerNumber
-        broker = current.adapter.getCommunicator()
-        print("----- CREANDO ROBOT CONTROLLER -----")
+                self.factories = 0
+                self.bots = 1
+                self.detectors = 0
+                self.mine_index = 0
+                self.containerNumber = containerNumber
+                self.name = name
 
-        proxy = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
-        print("CREANDO CONTAINER EN PROXY: ", proxy)
-        container_prx = services.ContainerPrx.checkedCast(proxy)
+                if mines == 0:
+                        self.mines = [
+                                drobots.Point(x=100, y=100),
+                                drobots.Point(x=100, y=300),
+                                drobots.Point(x=300, y=100),
+                                drobots.Point(x=300, y=300)
+                        ]
+                else:
+                        self.mines = [
+                                drobots.Point(x=150, y=150),
+                                drobots.Point(x=150, y=350),
+                                drobots.Point(x=350, y=150),
+                                drobots.Point(x=350, y=350)
+                        ]
 
-        print("CREANDO FACTORIAS EN PROXY: "+str(self.factories))
-        fproxy = broker.stringToProxy("Factory"+str(self.factories))
-        factory_prx = services.FactoryPrx.checkedCast(fproxy)
+        def makeController(self, bot, current=None):
+                
+                print("- - - - - CREANDO ROBOT CONTROLLER - - - - -")
+                
+                broker = current.adapter.getCommunicator()
 
-        robot_prx = factory_prx.make(bot, self.bots, containerNumber)
-        print("Robot creado con exito, procediendo a linkear...")
-        container_prx.link("Robot" + str(self.bots), robot_prx)
-        self.bots += 1
+                print("Creando Container...")
 
-        if (self.factories == 2):
-            self.factories = 0
+                cproxy = broker.stringToProxy("Container" + self.containerNumber)
+                container_prx = services.ContainerPrx.checkedCast(cproxy)
 
-        self.factories += 1
+                print("Creando Factory {}...".format(self.factories%3))
 
-        return robot_prx
+                fproxy = broker.stringToProxy("Factory" + str(self.factories%3))
+                self.factories += 1
+                factory_prx = services.FactoryPrx.checkedCast(fproxy)
 
-    def makeDetectorController(self, current):
-        containerNumber = self.containerNumber
+                print("Creando robot...")
 
-        print("----- CREANDO DETECTOR CONTROLLER -----")
-        print("CREANDO FACTORIA DE CHIVATOS EN PROXY: "+str(self.factories))
-        proxy_factory = current.adapter.getCommunicator().stringToProxy("Factory3")
+                robot_prx = factory_prx.make(bot, self.bots, self.containerNumber)
 
-        proxy = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
-        print("CREANDO CONTAINER EN PROXY: ", proxy)
-        container_prx = services.ContainerPrx.checkedCast(proxy)
+                print("Robot creado con éxito.\nEnlazando con Container {}...".format(self.containerNumber))
+        
+                container_prx.link("Robot" + str(self.bots), robot_prx)
+                self.bots += 1
 
-        factory = services.FactoryPrx.checkedCast(proxy_factory)
-        self.detectors += 1
-        detector_proxy = factory.makeDetector(containerNumber)
+                print("- - - - - ROBOT CONTROLLER CREADO - - - - -")
 
-        container_prx.link("Dectector" + str(self.detectors), detector_proxy)
+                return robot_prx
 
-        return detector_proxy
+        def makeDetectorController(self, current):
 
-    def getMinePosition(self, current):
+    	        print("- - - - - CREANDO DETECTOR CONTROLLER - - - - -")
 
-        print("Poniendo minitas...")
-        pos = self.mines[self.mine_index]
-        self.mine_index += 1
+    	        broker = current.adapter.getCommunicator()
 
-        return pos
+    	        print("Creando Container...")
 
-    def win(self, current=None):
-        print("You win very madafaker well >:D")
-        current.adapter.getCommunicator().shutdown()
+    	        cproxy = broker.stringToProxy("Container" + self.containerNumber)
+    	        container_prx = services.ContainerPrx.checkedCast(cproxy)
 
-    def lose(self, current=None):
-        print("You lose madafaker D:<")
-        current.adapter.getCommunicator().shutdown()
+    	        print("Creando Factory {}...".format(self.factories%3))
 
-    def gameAbort(self, current=None):
-        print("Game was aborted, like this program")
-        current.adapter.getCommunicator().shutdown()
+    	        fproxy = broker.stringToProxy("Factory" + str(self.factories%3))
+    	        self.factories += 1
+    	        factory_prx = services.FactoryPrx.checkedCast(fproxy)
+
+    	        print("Creando detector...")
+
+    	        detector_prx = factory_prx.makeDetector(self.containerNumber)
+
+    	        print("Detector creado con éxito.\nEnlazando con Container {}...".format(self.containerNumber))
+
+    	        container_prx.link("Detector" + str(self.detectors), detector_prx)
+    	        self.detectors += 1
+
+    	        print("- - - - - DETECTOR CONTROLLER CREADO - - - - -")
+
+    	        return detector_prx
+
+        def getMinePosition(self, current):
+
+    	        print("Poniendo mina {}".format(self.mine_index))
+    	        mine_position = self.mines[self.mine_index]
+    	        self.mine_index += 1
+
+    	        return mine_position
+
+        def win(self, current=None):
+
+    	        print("You win! Congratulations, {}\n(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧\n".format(self.name))
+    	        current.adapter.getCommunicator().shutdown()
+
+        def lose(self, current=None):
+
+    	        print("Oh no! You lose, {}\n(╯°□°）╯︵ ┻━┻\n".format(self.name))
+    	        current.adapter.getCommunicator().shutdown()
+
+        def gameAbort(self, current=None):
+
+    	        print("Fuck! Game has crashed\n.·´¯`(>▂<)´¯`·.\n")
+    	        current.adapter.getCommunicator().shutdown()

@@ -7,229 +7,237 @@ Ice.loadSlice('--all drobots.ice')
 import drobots
 Ice.loadSlice('--all services.ice')
 import services
-Ice.loadSlice('--all comunication.ice')
-import comunication
+Ice.loadSlice('--all communication.ice')
+import communication
 import math
 import random
 
-class OffensiveController(comunication.OffensiveController, comunication.Estado):
-    
-    def __init__(self, bot, id, containerNumber, current=None):
-        self.bot = bot
-        self.robot_id = id
-        self.containerNumber = containerNumber
-        self.driving = False
-        self.destroyed = False
-        self.objetivos = []
-        print("--- ROBOT ATACKER---")
+from detector_warning import *
+from detecciones_escaneo import *
+from objective import *
 
-    def turn(self, current):
-        """
-        Method that will be invoked remotely by the server. In this method we
-        should communicate with out Robot
-        """
+class AttackerController(communication.AttackerController, communication.State):
 
-        location = self.bot.location()
-        estadoActual = Estado(self.robot_id, location)
-        self.sendStatus(estadoActual, self.containerNumber, current)
-        
-        print("Turn of {} at location {},{}".format(
-            id(self), location.x, location.y))
+	def __init__(self, bot, iden, containerNumber, current):
 
-        if len(self.objetivos) > 0:
-            objetivoSeleccionado = random.randint(0, self.objetivos.len()-1)
-            self.destroyAnything(self.objetivos.pop(objetivoSeleccionado))
+		self.bot = bot
+		self.robotIden = iden
+		self.containerNumber = containerNumber
+		self.driving = False
+		self.destroyed = False
+		self.targets = []
+		self.resetTargets = 0
+		self.friends = []
+		self.movementCounter = 0
+		self.direction = 0
 
-        self.objetivos = []
+		print("- - - - - ROBOT {} -> ATTACKER -> FROM CONTAINER {} - - - - -".format(iden, containerNumber))
 
-        
+	def turn(self, current):
 
-    def destroyAnything(self, objetivo ,current=None):
-        try:
-            self.bot.cannon(objetivo.getDireccion(), objetivo.getDistancia())
-        except NoEnoughEnergy as e:
-            print("Energia insuficiente para efectuar el ataque, esperando recarga")
-    
-    def ola(self, direccion, distancia ,current=None):
-        try:
-            self.bot.cannon(direccion, distancia)
-        except Exception as e:
-            print("Energia insuficiente para efectuar el ataque, esperando recarga")
+		pos = self.bot.location()
 
-    def robotDestroyed(self, current):
-        """
-        Pending implementation:
-        void robotDestroyed();
-        """
-        print("Recordarme como un heroe...") 
+		print("Turn of Attacker{} at location {},{}".format(self.iden, pos.x, pos.y))
+		
+		crashAlert = False
 
-    def sendStatus(self, estado, containerNumber, current):
-        print("Enviando estado")
-        container_prx = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
-        container = services.ContainerPrx.checkedCast(container_prx)
-        proxy_list = list(container.list().values())
+		if self.destroyed == False:
 
-        for i in  range(len(proxy_list)):
-            proxyAux = proxy_list[i]
-            if(proxyAux.ice_isA("::comunication::SeeingController")):
-                print("Enviando estado a todos mi compañeros")
-                robot = comunication.SeeingControllerPrx.uncheckedCast(proxy_list[i])
-                robot.agregarEstado(estado.id, estado.location)	
+			if pos.x <= 20 or pos.y <= 20 or pos.x >= 380 or pos.y >= 380:
 
-    def receiveObjectives(self, listaObjetivos, current):
-        for i in listaObjetivos:
-            self.objetivos.append(i)
-            print("Objetivo recibido")
+				crashAlert = True
 
-class SeeingController(comunication.SeeingController, comunication.Estado):
-    
-    def __init__(self, bot, id, containerNumber, current=None):
-        self.bot = bot
-        self.robot_id = id
-        self.containerNumber = containerNumber
-        self.driving = False
-        self.destroyed = False
-        self.estados = []
-        self.contadorMovimiento = 0
-        self.direccion = 0
-        print("--- ROBOT DEFENDER ---")
+			if !self.driving and self.movementCounter == 0:
 
-    def turn(self, current):
-        """
-        Method that will be invoked remotely by the server. In this method we
-        should communicate with out Robot
-        """
-        listaEscaner = []
-        location = self.bot.location()
-        estadoActual = Estado(self.robot_id, location)
-        self.sendStatus(estadoActual, self.containerNumber, current)
+				self.bot.drive(self.direction, 100)
+				self.driving = True
+				print("[Attacker{}] Driving to -> {}".format(self.iden, self.direction))
 
-        print("Turn of {} at location {},{}".format(
-            id(self), location.x, location.y))
+			if self.movementCounter >= 35 or crashAlert == True:
 
-        if self.destroyed == False:
-            if self.driving == False and self.contadorMovimiento == 0:
-                self.direccion = random.randint(0, 359)
-                self.bot.drive(self.direccion, 100)
-                self.driving = True
-            elif self.contadorMovimiento != 5 and self.driving == True:
-                self.contadorMovimiento += 1
-                wide = random.randint(5,20)
+				self.direction = (self.direction + 180) % 360
+				self.bot.drive(self.direction, 100)
+				self.movementCounter = 0
+				print("[Attacker{}] Re-Driving to -> {}".format(self.iden, self.direction))
 
-                for angle in [0,45,90,135,180,225,270,315,359]:                    
-                    localizados = self.bot.scan(angle, wide)
-                    
-                    if localizados > 0:
-                        deteccion = deteccionesEscaneo(angle, wide, localizados)
-                        listaEscaner.append(deteccion)
-            
-            elif self.contadorMovimiento == 5:
-                self.direccion = random.randint(0,359)
-                self.bot.drive(self.direccion,100)
+			self.movementCounter += 1
 
-            if len(listaEscaner) > 0:
-                listaObjetivos = self.checkPosition(self.estados, listaEscaner, location)
+			currentState = State(self.robotIden, pos)
+			self.sendStatus(currentState, self.containerNumber, current)
 
+			self.selectTarget()
 
-    def checkPosition(self, listaEstadosCompas, listaEscaner, localizacionEscaner):
-        contadorCompadresEnEscaner = 0
-        listaObjetivos = []
-        dx = 0
-        dy = 0
-        direccionEscanerCompadre = 0
-        for i in listaEscaner:
-            for j in listaEstadosCompas:
-                locationCompadre = j.getLocation()
-                locationSeeingBot = localizacionEscaner
-                dx = locationCompadre.x - locationSeeingBot.x
-                dy = locationCompadre.y - locationSeeingBot.y
-                direccionEscanerCompadre = math.atan2(dy,dx)
+			self.resetTargets += 1
 
-                if direccionEscanerCompadre != i.getDireccion():
-                    objetivoNuevo = objetivo(i.getDireccion(), locationSeeingBot)
-                    listaObjetivos.append(objetivoNuevo)
+			if self.resetTargets == 10:
 
-        return listaObjetivos
+				self.targets = []
+				self.resetTargets = 0
 
+	def selectTarget(self):
 
-    def robotDestroyed(self, current):
-        self.destroyed = True
-        """
-        Pending implementation:
-        void robotDestroyed();
-        """
-        print("Os he fallado, lo siento...")
+		if self.targets == 0:
+			# Hacer algo cuando no haya objetivos
+			return
 
-    def sendStatus(self, estado, containerNumber, current=None):
-        print("Enviando estado")
-        container_prx = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
-        container = services.ContainerPrx.checkedCast(container_prx)
-        proxy_list = list(container.list().values())
+		self.filterTargets()
 
-        for i in  range(len(proxy_list)):
-            proxyAux = proxy_list[i]
-            if(proxyAux.ice_isA("::comunication::SeeingController")):
-                print("Enviando estado a todos mi compañeros")
-                robot = comunication.SeeingControllerPrx.uncheckedCast(proxy_list[i])
-                robot.agregarEstado(estado.id, estado.location)
-            
-    def sendObjetives(self, listaObjetivos, containerNumber, current=None):
-        print("Enviando Objetivos...")
-        container_prx = current.adapter.getCommunicator().stringToProxy("Container"+containerNumber)
-        container = services.ContainerPrx.checkedCast(container_prx)
-        proxy_list = list(container.list().values())
+		hasShooted = False
 
-        for i in  range(len(proxy_list)):
-            proxyAux = proxy_list[i]
-            if(proxyAux.ice_isA("::comunication::OffensiveController")):
-                print("Aqui Alfa Tango Charlie {}, preparen armas".format(self.robot_id))
+		for tgt in self.targets:
 
+			if tgt.prioridad == 3:
 
+				self.destroyThis(tgt)				
+				hasShooted = True
 
-    def agregarEstado(self, id, location, current):
-        estadoParaAgregar = Estado(id, location)
-        self.estados.append(estadoParaAgregar)
+		if !hasShooted:
 
-class Estado():
-    def __init__(self, id, location):
-        self.id = id
-        self.location = location
+			tgt_indx = random.randint(0, len(self.targets) - 1)
+			self.destroyTarget(self.targets[tgt_indx])
 
-    def getLocation(self):
-        return self.location
+	def filterTargets():
 
-class deteccionesEscaneo():
-    def __init__(self, direccion, aperturaEscaner, numeroEncontrado):
-        self.direccion = direccion
-        self.aperturaEscaner = aperturaEscaner
-        self.numeroEncontrado = numeroEncontrado
+		for fri in self.friends:
+			for nmy in self.targets:
 
-    def getDireccion(self):
-        return self.direccion
+				disX = nmy.posObjetivo.x - fri.x
+				disY = nmy.posObjetivo.y - fri.y	
 
-    def getNumeroEncontrado(self):
-        return self.numeroEncontrado
+				if math.hypot(disX, disY) < 40:
 
-class objetivo():
-    def __init__(self, direccion, puntoInicialEscaner):
-        self.direccion = direccion
-        self.distancia = self.calcularDistancia(direccion, puntoInicialEscaner)
+					self.targets.remove(nmy)
 
-    def calcularDistancia(self, direccion, puntoInicialEscaner):
-        puntoFinalEscaneo = [int(399 * (math.sin(direccion))),int(399 * math.cos(direccion))]
+	def destroyTarget(self, target, current=None):
 
-        if puntoFinalEscaneo[1] < 0:
-            puntoFinalEscaneo[1] = 0
-        elif puntoFinalEscaneo[1] > 399:
-            puntoFinalEscaneo[1] = 399
-        elif puntoFinalEscaneo[0] < 0:
-            puntoFinalEscaneo[0] = 0
-        elif puntoFinalEscaneo[0] > 399:
-            puntoFinalEscaneo[0] = 399
+		try:
 
-        distanciaX = puntoFinalEscaneo[1]-puntoInicialEscaner.x
-        distanciaY = puntoFinalEscaneo[0]-puntoInicialEscaner.y
+			print("[Attacker {}] Lanzando misil desde ({}, {}) a ({}, {})".format(self.iden, target.posAtacante.x, 
+				target.posAtacante.y, target.posObjetivo.x, target.posObjetivo.y))
 
-        distancia = math.sqrt(((distanciaX**2)+(distanciaY**2)))
+			self.bot.cannon(target.direccion, target.distancia)
 
-        return (distancia/2)
+		except Exception as e:
+
+			print("EXCEPTION: Energía insuficiente para efectuar el lanzamiento")
+
+	def markTarget(self, dirScan, posAtckr, current=None):
+		return Objective(dirScan, posAtckr, None, False)
+
+	def robotDestroyed(self, current=None):
+		print("; ; ; ; ; ROBOT DESTRUIDO ; ; ; ; ;") ############################### DO SOMETHING
+
+	def sendStatus(self, state, containerNumber, current):
+
+		container_prx = current.adapter.getCommunicator().stringToProxy("Container" + containerNumber)
+		container = services.ContainerPrx.checkedCast(container_prx)
+		proxy_list = list(container.list().values())
+
+		for prx in proxy_list:
+
+			if prx.ice_isA("::communication::WatcherController"):
+
+				print("[Wtchr] Enviando estado...")
+
+				robot_prx = communication.WatcherControllerPrx.uncheckedCast(prx)
+				robot_prx.addState(state)
+
+			elif prx.ice_isA("::communication::AttackerController")
+
+				print("[Atckr] Enviando estado...")
+
+				robot_prx = communication.AttackerControllerPrx.uncheckedCast(prx)
+				robot_prx.addState(state)
+
+	def receiveObjectives(self, objective, current=None):
+
+		if objective not in self.targets:
+			self.targets.append(objective)
+
+	def receiveAlert(self, warning, current):
+
+		pos = self.bot.location()
+		target = Objective(None, pos, warning.location, True)
+
+	def addState(self, state, current=None):
+		self.friends.append(state)
+
+class WatcherController(communication.WatcherController, communication.State):
+
+	def __init__(self, bot, iden, containerNumber, current):
+
+		self.bot = bot
+		self.robotIden = iden
+		self.containerNumber = containerNumber
+		self.driving = False
+		self.destroyed = False
+		self.friends = []
+		self.scannedRobots = []
+		self.targets = []
+		self.movementCounter = 0
+		self.direccion = 0
+
+		print("- - - - - ROBOT {} -> WATCHER -> FROM CONTAINER {} - - - - -".format(iden, containerNumber))
+
+	def turn(self, current):
+
+		scannedTargets = []
+
+		pos = self.bot.location()
+
+		self.sendStatus(pos, current)
+
+		print("Turn of {} at location {},{}".format(self.iden, pos.x, pos.y))
+
+		crashAlert = False
+
+		if !self.destroyed:
+
+			if pos.x <= 20 or pos.y <= 20 or pos.x >= 380 or pos.y >= 380:
+				crashAlert = True
+
+			if !self.driving:
+				
+				self.bot.drive(self.direccion, 100)
+				self.driving = True
+				print("[Watcher{}] Driving to -> {}".format(self.iden, self.direction))
+
+			else:
+
+				if self.movementCounter >= 35 or crashAlert:
+
+					self.direction = (self.direction + 180) % 360
+					self.bot.drive(self.direction, 100)
+					self.movementCounter = 0
+					print("[Watcher{}] Re-Driving to -> {}".format(self.iden, self.direction))
+
+				elif self.movementCounter < 35:
+
+					self.movementCounter += 1
+					wide = 20
+
+					for angle in [0, 45, 90, 135, 180, 225, 270, 315]:
+
+						numFoundRobots = self.bot.scan(angle, wide)
+
+						print("[Watcher{}] Realizando escaneo en ({},{}), con angulo {} y amplitud {} ...\nElementos localizados -> {}".format(
+							self.robotIden, pos.x, pos.y, angle, wide, numFoundRobots))
+
+						if numFoundRobots > 0:
+
+							detection = DetectionScannerI(angle, wide, nFoundRobots)
+							scannedRobots.append(detection)
+
+			self.targets = []
+
+			if len(self.scannedRobots) > 0:
+				self.targets = self.checkPositions(pos)
+
+			if len(self.targets) > 0:
+				self.sendObjectives(current)
+
+	def checkPositions(self, myPos):
+
+		friendCounter = 0
+
+		for i
